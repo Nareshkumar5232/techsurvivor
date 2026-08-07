@@ -1,0 +1,72 @@
+rules_version = '2';
+
+// Tech Survivor - Firestore Security Rules
+//
+// All application writes (and all scoring/qualification/leaderboard reads) go
+// through the Express API using the Firebase Admin SDK, which authenticates
+// with a service account and is NOT subject to these rules. These rules are a
+// defense-in-depth layer for the Firebase client SDKs (used only for
+// Authentication) and explicitly deny every direct client read/write to
+// Firestore. If a client is ever pointed at Firestore directly - by mistake,
+// a compromised key, or a future feature - it gets nothing.
+//
+// Do not weaken this file to "fix" a frontend bug: the frontend must always
+// go through the backend REST API for Firestore-backed data.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /users/{userId} {
+      allow read, write: if false;
+    }
+
+    match /events/{eventId} {
+      allow read, write: if false;
+
+      match /rounds/{roundId} {
+        allow read, write: if false;
+      }
+    }
+
+    match /mcqQuestions/{questionId} {
+      allow read, write: if false;
+    }
+
+    match /mcqAttempts/{attemptId} {
+      allow read, write: if false;
+    }
+
+    match /codingProblems/{problemId} {
+      allow read, write: if false;
+    }
+
+    match /savedCode/{savedCodeId} {
+      allow read, write: if false;
+    }
+
+    match /submissions/{submissionId} {
+      allow read, write: if false;
+    }
+
+    match /leaderboards/{eventId} {
+      allow read, write: if false;
+
+      match /entries/{userId} {
+        allow read, write: if false;
+      }
+    }
+
+    match /announcements/{announcementId} {
+      allow read, write: if false;
+    }
+
+    match /auditLogs/{logId} {
+      allow read, write: if false;
+    }
+
+    // Explicit default-deny fallback for any collection not listed above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// Storage is used only for the event logo. Public read, admin-only write.
+// Admin role comes from a Firebase custom claim ("role": "admin") set by the
+// backend via the Admin SDK - never trust a client-supplied role.
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /events/{eventId}/logo/{fileName} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.auth.token.role == "admin"
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches("image/.*");
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

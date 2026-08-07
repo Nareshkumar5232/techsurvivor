@@ -1,0 +1,22 @@
+{
+  "name": "@tech-survivor/scripts",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "seed": "tsx --env-file=../backend/.env src/seed.ts",
+    "create-admin": "tsx --env-file=../backend/.env src/create-admin.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@tech-survivor/types": "1.0.0",
+    "@tech-survivor/config": "1.0.0",
+    "@tech-survivor/shared": "1.0.0",
+    "firebase-admin": "^12.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
