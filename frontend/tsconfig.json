@@ -17,10 +17,7 @@
     "plugins": [{ "name": "next" }],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./*"],
-      "@tech-survivor/types": ["../packages/types/src/index.ts"],
-      "@tech-survivor/config": ["../packages/config/src/index.ts"],
-      "@tech-survivor/shared": ["../packages/shared/src/index.ts"]
+      "@/*": ["./*"]
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
