@@ -98,6 +98,25 @@ roundsRouter.post(
 );
 
 roundsRouter.post(
+  "/:roundId/reset",
+  asyncHandler(async (req, res) => {
+    const roundId = req.params.roundId!;
+    const round = await loadRoundOrThrow(roundId);
+    // Clears the fixed start/end window so the next "start" computes a fresh one from
+    // durationMinutes. Needed because pause/resume never extend endTime, so a round can end
+    // up "live" with an already-elapsed window - this is the supported way out of that state.
+    await updateRound(roundId, { status: "waiting", startTime: null, endTime: null });
+    await logAudit(req.user!, "round_reset", "round", roundId, {
+      roundId,
+      previousStatus: round.status,
+      previousStartTime: round.startTime,
+      previousEndTime: round.endTime,
+    });
+    sendSuccess(res, await getRound(roundId), "Round reset");
+  }),
+);
+
+roundsRouter.post(
   "/round1/calculate-qualification",
   asyncHandler(async (req, res) => {
     const round1 = await getRound(ROUND1_ID);

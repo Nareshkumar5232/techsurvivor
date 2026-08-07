@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CalculatorIcon, Pause, Play, RotateCcw, Square } from "lucide-react";
+import { CalculatorIcon, Pause, Play, RefreshCw, RotateCcw, Square } from "lucide-react";
 import { roundConfigUpdateSchema, type RoundConfigUpdateInput } from "@tech-survivor/shared";
 import type { RoundConfig, RoundStatus } from "@tech-survivor/types";
 import { apiClient, ApiClientError } from "@/lib/apiClient";
@@ -19,7 +19,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/admin/confirm-dialog";
 
 type RoundKey = "round1" | "round2";
-type RoundAction = "start" | "pause" | "resume" | "end";
+type RoundAction = "start" | "pause" | "resume" | "end" | "reset";
 
 const STATUS_BADGE: Record<RoundStatus, BadgeProps["variant"]> = {
   waiting: "secondary",
@@ -54,6 +54,13 @@ const ACTION_COPY: Record<RoundAction, { label: string; icon: typeof Play; title
     title: "End this round?",
     description: "This closes the round for every participant immediately and cannot be undone from this screen.",
   },
+  reset: {
+    label: "Reset",
+    icon: RefreshCw,
+    title: "Reset this round for a new batch?",
+    description:
+      "This immediately cuts off anyone currently in this round and clears its start/end time back to a blank slate. Use this between batches/sessions - already-submitted results are not affected. Afterward, click Start to open a fresh full-duration window.",
+  },
 };
 
 function availableActions(status: RoundStatus): RoundAction[] {
@@ -61,9 +68,11 @@ function availableActions(status: RoundStatus): RoundAction[] {
     case "waiting":
       return ["start"];
     case "live":
-      return ["pause", "end"];
+      return ["pause", "end", "reset"];
     case "paused":
-      return ["resume", "end"];
+      return ["resume", "end", "reset"];
+    case "completed":
+      return ["reset"];
     default:
       return [];
   }
@@ -174,7 +183,7 @@ function RoundPanel({ roundKey, title, round }: { roundKey: RoundKey; title: str
   const actionMutation = useMutation({
     mutationFn: (action: RoundAction) => apiClient.post<RoundConfig>(`/admin/rounds/${roundKey}/${action}`),
     onSuccess: (_, action) => {
-      toast.success(`Round ${ACTION_COPY[action].label.toLowerCase()}ed`);
+      toast.success(action === "reset" ? "Round reset" : `Round ${ACTION_COPY[action].label.toLowerCase()}ed`);
       queryClient.invalidateQueries({ queryKey: ["event", "status"] });
     },
     onError: (error) => toast.error(error instanceof ApiClientError ? error.message : "Round action failed"),
@@ -211,7 +220,13 @@ function RoundPanel({ roundKey, title, round }: { roundKey: RoundKey; title: str
             return (
               <Button
                 key={action}
-                variant={action === "end" ? "destructive" : action === "start" || action === "resume" ? "primary" : "outline"}
+                variant={
+                  action === "end" || action === "reset"
+                    ? "destructive"
+                    : action === "start" || action === "resume"
+                      ? "primary"
+                      : "outline"
+                }
                 onClick={() => setPendingAction(action)}
               >
                 <Icon className="h-4 w-4" aria-hidden="true" /> {ACTION_COPY[action].label}
@@ -248,7 +263,7 @@ function RoundPanel({ roundKey, title, round }: { roundKey: RoundKey; title: str
           title={ACTION_COPY[pendingAction].title}
           description={ACTION_COPY[pendingAction].description}
           confirmLabel={ACTION_COPY[pendingAction].label}
-          destructive={pendingAction === "end"}
+          destructive={pendingAction === "end" || pendingAction === "reset"}
           loading={actionMutation.isPending}
           onConfirm={() => actionMutation.mutate(pendingAction)}
           onCancel={() => setPendingAction(null)}
