@@ -10,7 +10,7 @@ const nextConfig = {
   // Pin the workspace root explicitly - without this Next.js can get confused by an unrelated
   // lockfile elsewhere on the machine (e.g. a personal home-directory package-lock.json) and
   // infer the wrong monorepo root.
-  outputFileTracingRoot: path.join(__dirname, "../.."),
+  outputFileTracingRoot: path.join(__dirname, ".."),
 };
 
 export default nextConfig;
